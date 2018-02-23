@@ -1,7 +1,7 @@
 export const commonParams = {
   g_tk:5381,
   inCharset:'utf8',
-  callback:'recom018173741247956565',
+  //callback:'recom018173741247956565',
   //jsonpCallback:'recom018173741247956565',
   format:'jsonp',
   inCharset:'utf8',
