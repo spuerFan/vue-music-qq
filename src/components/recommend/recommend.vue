@@ -1,36 +1,42 @@
 <template>
   <div class="recommend">
-    <div class="recommend-content">
-      <div v-if="recommends.length" class="slider-wrapper">
-        <slider>
-          <div v-for="item in recommends">
-            <a :href="item.linkUrl">
-              <img :src="item.picUrl" />
-            </a>
+    <scroll ref="scroll" class="recommend-content" :data="discList">
+      <div>
+        <div v-if="recommends.length" class="slider-wrapper">
+          <slider>
+            <div v-for="item in recommends">
+              <a :href="item.linkUrl">
+                <img class="needsclick" @load="loadImage" :src="item.picUrl" />
+              </a>
 
-          </div>
-        </slider>
-      </div>
-      <div class="recommend-list">
-        <h1 class="list-title">热门歌单推荐</h1>
-        <ul>
-          <li v-for="item in discList" class="item">
-            <div class="icon">
-              <img :src="item.imgurl" width="60" height="60" />
             </div>
-            <div class="text">
-              <h2 class="name" v-html="item.creator.name"></h2>
-              <p class="desc" v-html="item.dissname"></p>
-            </div>
-          </li>
-
-        </ul>
+          </slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li v-for="item in discList" class="item">
+              <div class="icon">
+                <img v-lazy="item.imgurl" width="60" height="60" />
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
+      <div class="loading-container" v-show="!discList.length">
+        <loading></loading>
+      </div>
+    </scroll>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import Loading from 'base/loading/loading'
+  import Scroll from 'base/scroll/scroll'
   import Slider from 'base/slider/slider'
   import {getRecommend,getDiscList} from 'api/recommend'
 
@@ -45,8 +51,23 @@
         }
     },
     created(){
+
+      //模拟请求延迟 scroll moument 时数据还没有加载好
+      //解决办法  #loadImage
+//      setTimeout( () => {
+//        this._getRecommend();
+//      },2000)
+
+
+      //模拟延迟,loading效果
+//      setTimeout( () => {
+//        this._getDiscList();
+//      },1000)
+
       this._getRecommend();
       this._getDiscList();
+
+
     },
     methods: {
       _getRecommend() {
@@ -62,10 +83,18 @@
                 this.discList = res.data.list;
             }
         })
+      },
+      loadImage(){
+        if(!this.checkLoaded){
+          this.$refs.scroll.refresh()
+          this.checkLoaded = true;
+        }
       }
     },
     components: {
-      Slider
+      Slider,
+      Scroll,
+      Loading
     }
   }
 
