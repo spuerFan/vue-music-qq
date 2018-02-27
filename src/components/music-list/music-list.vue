@@ -1,12 +1,10 @@
 <template>
   <div class="music-list">
-    <div class="back" >
+    <div class="back" @click="back">
       <i class="icon-back"></i>
     </div>
-    <h1 class="title" ></h1>
-    <div class="bg-image" >
-      <div class="play-wrapper">
-      </div>
+    <h1 class="title" v-html="title"></h1>
+    <div class="bg-image" :style="bgStyle">
       <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
@@ -14,6 +12,32 @@
 </template>
 
 <script type="text/ecmascript-6">
+  export default {
+    props: {
+      bgImage: {
+        type: String,
+        default: ''
+      },
+      songs: {
+        type:Array,
+        default:[]
+      },
+      title:{
+        type:String,
+        default:''
+      }
+    },
+    computed: {
+      bgStyle() {
+        return `background-image:url(${this.bgImage})`
+      }
+    },
+    methods:{
+      back(){
+        this.$router.push('/singer')
+      }
+    }
+  }
 
 </script>
 
