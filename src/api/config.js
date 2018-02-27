@@ -14,3 +14,4 @@ export const options = {
 }
 
 export const STATUS_OK = 0
+export const ERR_OK = 0
