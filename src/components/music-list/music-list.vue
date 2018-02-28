@@ -4,14 +4,40 @@
       <i class="icon-back"></i>
     </div>
     <h1 class="title" v-html="title"></h1>
-    <div class="bg-image" :style="bgStyle">
+    <div class="bg-image" :style="bgStyle" ref="bgImage">
+      <div class="play-wrapper">
+        <div class="play" v-show="songs.length>0" ref="playBtn">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
       <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
+    <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" class="list" ref="list">
+      <div class="song-list-wrapper">
+        <song-list @select="selectItem" :songs="songs"></song-list>
+      </div>
+      <div class="loading-container" v-show="!songs.length">
+        <loading ></loading>
+      </div>
+    </scroll>
+
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import Loading from 'base/loading/loading'
+  import Scroll from 'base/scroll/scroll'
+  import SongList from 'base/song-list/song-list'
+  import {prefixStyle} from 'common/js/dom'
+
+  import {mapActions} from 'vuex'
+
+  const RESERVED_HEIGH = 40
+  const transform = prefixStyle('transform')
+  const backdrop = prefixStyle('backdrop-filter')
+
   export default {
     props: {
       bgImage: {
@@ -27,15 +53,81 @@
         default:''
       }
     },
+    data() {
+        return {
+            scrollY : 0
+        }
+    },
     computed: {
       bgStyle() {
         return `background-image:url(${this.bgImage})`
       }
     },
+    created(){
+        this.probeType = 3
+        this.listenScroll = true
+    },
     methods:{
+      selectItem(item,index){
+          this.selectPlay({
+            list: this.songs,
+            index: index
+          })
+
+      },
       back(){
-        this.$router.push('/singer')
-      }
+        this.$router.back()
+      },
+      scroll(pos){
+          this.scrollY = pos.y
+      },
+      ...mapActions([
+          'selectPlay'
+      ])
+    },
+    watch: {
+        scrollY(newY) {
+            let translateY = Math.max(this.minTranslateY,newY)
+            let zIndex = 0
+            let scale = 1
+            let blur = 0
+            this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`
+
+
+            const percent = Math.abs(newY/ this.imageHeight)
+            if(newY > 0){
+                scale = 1 + percent
+                zIndex = 10
+            }else{
+                blur = Math.min(20 * percent,20)
+            }
+            this.$refs.filter.style[backdrop ] = `blur(${blur}px)`
+            if(newY < this.minTranslateY){
+                zIndex = 10
+                this.$refs.bgImage.style.paddingTop = 0
+                this.$refs.bgImage.style.height = `${RESERVED_HEIGH}px`
+                this.$refs.playBtn.style.display = 'none'
+            }else{
+              this.$refs.bgImage.style.paddingTop = '70%'
+              this.$refs.bgImage.style.height = 0
+              this.$refs.playBtn.style.display = ''
+            }
+            this.$refs.bgImage.style.zIndex = zIndex
+
+            this.$refs.bgImage.style['transform'] = `scale(${scale})`
+            this.$refs.bgImage.style['webkitTransform'] = `scale(${scale})`
+
+        }
+    },
+    mounted() {
+        this.imageHeight = this.$refs.bgImage.clientHeight
+        this.minTranslateY = -this.imageHeight + RESERVED_HEIGH
+        this.$refs.list.$el.style.top = `${this.imageHeight}px`
+    },
+    components: {
+        Scroll,
+        SongList,
+        Loading
     }
   }
 
